@@ -1,5 +1,11 @@
 # CanSat Ground Control Dashboard
 
+**Live Demo:** https://cansat-ground-control-dashboard.vercel.app
+
+A web-based Ground Control Dashboard developed as part of an Aerospace Internship Project.
+
+# CanSat Ground Control Dashboard
+
 A web-based Ground Control Dashboard developed as part of an Aerospace Internship Project. The application simulates a mission control station for monitoring a CanSat by displaying real-time telemetry, mission status, orientation, tracking information, and system health through an interactive dashboard.
 
 ## Features
