@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanSat Ground Control</title>
+  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+</head>
+<body>
+  <div class="app-shell">
+    <button id="sidebarToggle" class="sr-only" type="button" aria-expanded="true" aria-controls="leftRail" tabindex="-1">Mission Panels</button>
+    <header class="masthead">
+      <div class="brand-block">
+        <div class="mission-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <h1>CANSAT GROUND CONTROL</h1>
+          <p>MISSION OPERATIONS DASHBOARD</p>
+        </div>
+      </div>
+
+      <section class="status-board" aria-label="Mission status">
+        <article>
+          <span>MISSION TIME</span>
+          <strong id="missionElapsed">T+ 00:00:00</strong>
+        </article>
+        <article>
+          <span>SYSTEM STATUS</span>
+          <strong id="linkStatus" class="live">SIMULATION</strong>
+        </article>
+        <article>
+          <span>PACKETS</span>
+          <strong id="packetCount">0</strong>
+        </article>
+        <article>
+          <span>GPS STATUS</span>
+          <strong id="gpsLock" class="live">WAITING</strong>
+        </article>
+      </section>
+
+      <div class="time-card">
+        <span id="dateLabel">-- --- ----</span>
+        <strong id="clock">--:--:--</strong>
+      </div>
+      <div class="satellite-art" aria-hidden="true"></div>
+    </header>
+
+    <main class="mission-layout">
+      <aside class="left-rail" id="leftRail">
+        <section class="panel cansat-card">
+          <h2>WHAT IS CANSAT?</h2>
+          <div class="cansat-visual" aria-hidden="true">
+            <div class="parachute"></div>
+            <div class="capsule"></div>
+          </div>
+          <p>CanSat is a small satellite the size of a soda can. It is launched high into the sky and sends real-time data back to the ground station.</p>
+          <button class="small-btn">LEARN MORE</button>
+        </section>
+
+        <section class="panel side-controls">
+          <h2>MISSION CONTROL</h2>
+          <button id="separateBtn">Manual Separation</button>
+          <button id="parachuteBtn" class="critical">Emergency Parachute</button>
+          <button id="redundantBtn">Redundant Activation</button>
+          <div id="commandLog" class="command-log" aria-live="polite"></div>
+        </section>
+
+        <section class="panel error-guide">
+          <h2>ERROR CODE GUIDE</h2>
+          <p><b class="green">0000</b> All OK</p>
+          <p><b class="red">1000</b> Descent Rate Fault</p>
+          <p><b class="amber">0100</b> GPS Lost</p>
+          <p><b class="amber">0010</b> Payload Separation Failure</p>
+          <p><b class="red">0001</b> Emergency Parachute Activated</p>
+          <button class="small-btn">VIEW FULL GUIDE</button>
+        </section>
+
+        <section class="panel phase-card">
+          <h2>MISSION PHASE</h2>
+          <ol>
+            <li class="done">Pre-Launch</li>
+            <li class="done">Ascent</li>
+            <li class="done">Apogee</li>
+            <li id="phaseDescent" class="active">Descent</li>
+            <li id="phaseLanding">Landing</li>
+          </ol>
+        </section>
+      </aside>
+
+      <section class="main-deck">
+        <section class="command-bar" aria-label="Top control bar">
+          <button id="startBtn" class="success">Start Telemetry</button>
+          <button id="stopBtn" class="danger">Stop Telemetry</button>
+          <button id="exportCsvBtn">Export CSV</button>
+          <button id="exportGraphBtn" class="purple">Export Graph</button>
+          <button id="syncTimeBtn" class="gold">Sync Time</button>
+          <button id="resetPacketBtn">Reset Packet</button>
+          <button id="connectSerialBtn">Connect Serial</button>
+        </section>
+
+        <section class="panel telemetry-panel">
+          <div class="panel-title telemetry-panel-title">
+            <div class="telemetry-title-block">
+              <span class="telemetry-sys-id" aria-hidden="true">SYS / TM-STREAM</span>
+              <h2>LIVE TELEMETRY</h2>
+            </div>
+            <span id="missionState" class="mission-state-badge">READY</span>
+          </div>
+          <div class="telemetry-grid">
+            <article class="telemetry-card" data-channel="CH-01" data-tippy-content="Altitude tells you how high the CanSat is above the ground, measured in meters. It rises during launch and falls during descent.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">ALTITUDE</span>
+                <span class="tm-id" aria-hidden="true">CH-01</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-altitude" class="tm-value">--</strong><small class="tm-unit">m</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">RATE</span>
+                <em id="altitudeTrend">--</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-02" data-tippy-content="Pressure is the weight of the air around the CanSat. It drops as the CanSat climbs higher, so it helps confirm altitude changes.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">PRESSURE</span>
+                <span class="tm-id" aria-hidden="true">CH-02</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-pressure" class="tm-value">--</strong><small class="tm-unit">hPa</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">DELTA</span>
+                <em id="pressureTrend">--</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-03" data-tippy-content="Temperature shows how warm or cold the payload is inside the CanSat. Extreme values can mean the electronics need attention.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">TEMPERATURE</span>
+                <span class="tm-id" aria-hidden="true">CH-03</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-payloadTemp" class="tm-value">--</strong><small class="tm-unit">°C</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">DELTA</span>
+                <em id="tempTrend">--</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-04" data-tippy-content="Battery shows how much power is left in volts. A lower reading means the CanSat may soon stop sending data.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">BATTERY</span>
+                <span class="tm-id" aria-hidden="true">CH-04</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-battery" class="tm-value">--</strong><small class="tm-unit">V</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">CAP</span>
+                <em id="batteryTrend">--</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-05" data-tippy-content="Descent rate is how fast the CanSat is falling in meters per second. For a safe landing, parachute missions aim for about 8 to 10 m/s.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">DESCENT RATE</span>
+                <span class="tm-id" aria-hidden="true">CH-05</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-descentRate" class="tm-value">--</strong><small class="tm-unit">m/s</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">STAT</span>
+                <em id="descentTrend">Stable</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-06" data-tippy-content="Signal strength shows how strong the radio link is between the CanSat and ground control. Higher values mean more reliable data.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">SIGNAL</span>
+                <span class="tm-id" aria-hidden="true">CH-06</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-signal" class="tm-value">--</strong><small class="tm-unit">%</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">LINK</span>
+                <em id="signalTrend">--</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-07" data-tippy-content="GPS tells you whether the CanSat knows its location. LOCK means satellites are found; coordinates show latitude and longitude on Earth.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">GPS LOCK</span>
+                <span class="tm-id" aria-hidden="true">CH-07</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-gpsStatus" class="tm-value tm-value-text">--</strong>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">POS</span>
+                <em id="coordinates">--, --</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-08" data-tippy-content="Packet count is how many telemetry messages have been received. Steady increases mean data is flowing; sudden stops may mean a link problem.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">PACKET COUNT</span>
+                <span class="tm-id" aria-hidden="true">CH-08</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="packetMirror" class="tm-value">0</strong>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">LOSS</span>
+                <em>No Loss</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-09" data-tippy-content="Roll is side-to-side tilt in degrees — like an airplane banking left or right as it spins or swings.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">ROLL</span>
+                <span class="tm-id" aria-hidden="true">CH-09</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-roll" class="tm-value">--</strong><small class="tm-unit">°</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">AXIS</span>
+                <em>Side tilt</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-10" data-tippy-content="Pitch is forward or backward tilt in degrees — nose up or nose down relative to the horizon.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">PITCH</span>
+                <span class="tm-id" aria-hidden="true">CH-10</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-pitch" class="tm-value">--</strong><small class="tm-unit">°</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">AXIS</span>
+                <em>Fwd / back</em>
+              </footer>
+            </article>
+            <article class="telemetry-card" data-channel="CH-11" data-tippy-content="Yaw is compass-style rotation in degrees — which horizontal direction the CanSat is facing as it turns.">
+              <span class="tm-bracket tm-bracket-tl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-tr" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-bl" aria-hidden="true"></span>
+              <span class="tm-bracket tm-bracket-br" aria-hidden="true"></span>
+              <header class="tm-header">
+                <span class="tm-led" aria-hidden="true"></span>
+                <span class="tm-label">YAW</span>
+                <span class="tm-id" aria-hidden="true">CH-11</span>
+              </header>
+              <div class="tm-readout">
+                <strong id="metric-yaw" class="tm-value">--</strong><small class="tm-unit">°</small>
+              </div>
+              <footer class="tm-footer">
+                <span class="tm-trend-label" aria-hidden="true">AXIS</span>
+                <em>Heading</em>
+              </footer>
+            </article>
+          </div>
+          <div class="hidden-metrics" aria-hidden="true">
+            <span id="metric-containerTemp"></span>
+            <span id="metric-humidity"></span>
+          </div>
+        </section>
+
+        <section class="panel graphs-panel">
+          <div class="panel-title">
+            <h2>REAL-TIME TELEMETRY CHART</h2>
+            <span id="errorCode" class="error-code">0000</span>
+          </div>
+          <div id="graphLegend" class="chart-legend"></div>
+          <div class="main-chart-wrap">
+            <canvas id="graphCanvas" class="main-chart-canvas" aria-label="Multi-line telemetry chart"></canvas>
+          </div>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-title">
+            <h2>TELEMETRY LOG</h2>
+            <span id="logCount">0 records</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Packet</th>
+                  <th>Altitude (m)</th>
+                  <th>Temp (C)</th>
+                  <th>Pressure (hPa)</th>
+                  <th>Battery (V)</th>
+                  <th>Descent Rate</th>
+                  <th>Error</th>
+                </tr>
+              </thead>
+              <tbody id="telemetryTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <aside class="right-deck">
+        <section class="panel map-panel">
+          <div class="panel-title">
+            <h2>LIVE TRACKING MAP</h2>
+            <div>
+              <button class="small-btn">FOLLOW</button>
+              <button class="small-btn">+</button>
+            </div>
+          </div>
+          <div class="map-wrap">
+            <canvas id="mapCanvas" width="480" height="480" aria-label="GPS trajectory map"></canvas>
+          </div>
+        </section>
+
+        <section class="panel orientation-panel">
+          <div class="panel-title">
+            <h2>ORIENTATION <small>(Roll | Pitch | Yaw)</small></h2>
+          </div>
+          <div class="attitude-values">
+            <span>ROLL <strong id="rollValue">0 deg</strong></span>
+            <span>PITCH <strong id="pitchValue">0 deg</strong></span>
+            <span>YAW <strong id="yawValue">0 deg</strong></span>
+          </div>
+          <div class="horizon" id="horizon">
+            <div class="sky"></div>
+            <div class="ground"></div>
+            <div class="vehicle-model"></div>
+            <div class="aircraft-mark"></div>
+          </div>
+        </section>
+
+        <section class="panel video-panel">
+          <div class="panel-title">
+            <h2>LIVE VIDEO FEED</h2>
+            <select id="cameraSelect" aria-label="Camera selection"></select>
+          </div>
+          <div class="video-frame">
+            <video id="video" autoplay muted playsinline></video>
+            <div class="video-placeholder">
+              <div class="camera-offline">
+                <span class="camera-offline-icon" aria-hidden="true">📷</span>
+                <strong>Camera Offline</strong>
+                <p>Waiting for camera...</p>
+              </div>
+            </div>
+            <span id="cameraStatus" class="live-badge">LIVE</span>
+          </div>
+          <div class="video-controls">
+            <button id="startCameraBtn" class="small-btn">Start Camera</button>
+            <button id="stopCameraBtn" class="small-btn">Stop Camera</button>
+          </div>
+        </section>
+
+        <section class="panel health-panel">
+          <h2>SYSTEM HEALTH</h2>
+          <p><span class="health-dot health-dot-ok"></span>Sensors <b class="status-ok">OK</b></p>
+          <p><span class="health-dot health-dot-ok"></span>Communication <b class="status-ok">OK</b></p>
+          <p><span class="health-dot health-dot-ok"></span>GPS <b class="status-ok">OK</b></p>
+          <p><span class="health-dot health-dot-ok"></span>Parachute System <b id="parachuteHealth" class="status-ok">OK</b></p>
+          <p><span class="health-dot health-dot-warn"></span>Battery <b id="batteryHealth" class="status-warn">--</b></p>
+        </section>
+
+        <section class="panel quick-panel">
+          <h2>QUICK INFO</h2>
+          <p>Max Altitude <b id="maxAltitude">--</b></p>
+          <p>Launch Time <b id="launchTime">--</b></p>
+          <p>Apogee Time <b id="apogeeTime">--</b></p>
+          <p>Total Distance <b id="totalDistance">--</b></p>
+          <p>Total Flight Time <b id="flightTime">--</b></p>
+          <span id="lastCommand" class="last-command">NONE</span>
+          <span id="commandStatus" class="last-command">STANDBY</span>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="footer-tip">
+      <span>TIP: Hover over any card to see more mission information.</span>
+      <strong>Stay Curious. Keep Building. Reach for the Stars!</strong>
+      <span>CanSat Mission Dashboard v1.0</span>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
