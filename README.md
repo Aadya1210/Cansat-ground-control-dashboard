@@ -1,30 +1,38 @@
-# CanSat Ground Control Software
+# CanSat Ground Control Dashboard
 
-This project is a complete single-page Ground Control Software dashboard for the CanSat assignment brief.
+A web-based Ground Control Dashboard developed as part of an Aerospace Internship Project. The application simulates a mission control station for monitoring a CanSat by displaying real-time telemetry, mission status, orientation, tracking information, and system health through an interactive dashboard.
 
-## Files
+## Features
 
-- `index.html` - main dashboard page
-- `src/styles.css` - dashboard styling and responsive layout
-- `src/app.js` - telemetry simulation, controls, graphs, map, camera, serial, and export logic
-- `docs/layout.md` - full layout plan
-- `docs/report.md` - project report
-- `data/sample_telemetry.csv` - sample telemetry log
+- Real-time telemetry monitoring
+- Interactive telemetry graphs
+- Mission tracking map
+- Orientation indicator (Roll, Pitch, Yaw)
+- Mission control panel
+- Telemetry log
+- Responsive, space-themed user interface
 
-## Run
+## Technologies Used
 
-Open `index.html` in a browser.
+- HTML5
+- CSS3
+- JavaScript
+- Chart.js
 
-For camera and serial features, run from localhost:
+## Getting Started
 
-```powershell
-python -m http.server 8080
+Clone the repository:
+
+```bash
+git clone https://github.com/Aadya1210/Cansat-ground-control-dashboard.git
 ```
 
-Then visit:
+Open `index.html` in your browser or run the project using Live Server in VS Code or Cursor.
 
-```text
-http://localhost:8080
-```
+## Author
 
-Use a Chromium-based browser for Web Serial support.
+**Aadya Srivastava**
+
+## License
+
+This project was developed for educational and internship purposes.
